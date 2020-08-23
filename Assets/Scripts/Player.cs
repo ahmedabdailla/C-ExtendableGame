@@ -1,4 +1,5 @@
-﻿using States;
+﻿using System;
+using States;
 using States.Movements;
 
 namespace Task.Player
@@ -9,38 +10,15 @@ namespace Task.Player
     using UnityEngine;
 
     public class Player : MonoBehaviour
-    { 
-        private static Player _instance = null;  
-        public static Player Instance  
-        {  
-            get  
-            {  
-                if (_instance == null)  
-                {  
-                    _instance = new Player();  
-                }  
-                return _instance;  
-            }  
-        }
-        
-        [SerializeField, SerializeReference]
-        public IState state = new Running();
-
+    {
+        public IState state;
         public IState GetState()
         {
             return state;
         }
-
         public void ChangeState(IState newState)
-        {
-            if(state.Doable()){
-            state.EndState();
+        { 
             state = newState;
-            state.StartState();
-            }
-            else
-            {
-            }
         }
     }
 }

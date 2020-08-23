@@ -1,17 +1,39 @@
 ﻿using System;
 using Task.Player;
+using Task.Player.Controller;
 using UnityEngine;
 
 namespace States.Movements
 {
     public class Running : Moving, IState
     {
-        public float speed = 4.0f;
-        
-        public void HoldState(float[] args)
+        public float speed = 3.0f;
+
+        public override void StartState(Player player)
         {
-            Debug.Log("I'm Moving here taking" + speed + args[0] + args[1]);
-            Player.Instance.gameObject.transform.Translate(new Vector3(args[0],0,args[1]) * speed * 1);
+            base.StartState(player);
+            Debug.Log("You're a Runner Now");
+        }
+
+        public override void HandleInput()
+        {
+            var horizontalInput = Input.GetAxis ("Horizontal");
+            var verticalInput = Input.GetAxis ("Vertical");
+            if (horizontalInput != 0f || verticalInput != 0f)
+            {
+                Player.gameObject.transform.Translate(new Vector3(horizontalInput,0,verticalInput) * speed * Time.deltaTime);
+            }
+            var Runs = Input.GetButtonUp("Shift");
+            if (Runs)
+            {
+                Player.GetComponent<PlayerController>().ChangeState(Player.GetComponent<PlayerController>().States.MovingState);
+            }
+            SharedInput();
+        }
+
+        public override void EndState()
+        {
+            Debug.Log("You Left Running");
         }
     }
 }

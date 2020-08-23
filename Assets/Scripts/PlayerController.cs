@@ -1,5 +1,5 @@
 ﻿using System;
-using DefaultNamespace;
+using Task.Player;
 using States;
 using States.Movements;
 using Task.Player.States.Air;
@@ -13,71 +13,51 @@ using System.Collections.Generic;
 using UnityEngine;
 public class PlayerController : MonoBehaviour
 {    
-    private CharacterController controller;
-    private GameObject _useableActor;
-    private IUse _use;
+    private Use Use = new Use();
     private IState _state;
     private Player _player;
-    private bool _interacting = false;
-
-    public IState[] States;
+    public global::States.States States = new global::States.States();
+    
     private void Start()
     {
-        controller = gameObject.GetComponent<CharacterController>();
-        _player = Player.Instance;
-        _state = _player.GetState();
+        _player = this.gameObject.GetComponent<Player>();
+        _state = States.MovingState;
+        _state.StartState(_player);
+        _player.ChangeState(_state);
     }
 
-    private void ChangeState(IState NewState)
+    public void ChangeState(IState NewState)
     {
-        _player.ChangeState(NewState);
-        _state = NewState;
+        if(NewState.Doable()){
+            _state.EndState();
+            _state = NewState;
+            _state.StartState(_player);
+            _player.ChangeState(NewState);
+        }
     }
 
     private void Update()
     {
-        var horizontalInput = Input.GetAxis ("Horizontal");
-        var verticalInput = Input.GetAxis ("Vertical");
-        if (horizontalInput != 0f || verticalInput != 0f)
-        {
-            float[] array = {horizontalInput, verticalInput};
-            _state.HoldState(array);
-        }
+        Use.HandleInput();
+        _state.HandleInput();
+    }
 
-        var jumping = Input.GetButton("Jump");    
-        if (jumping)
-        {
-            _player.ChangeState(new Jumping());
-        }
-        
-        var ducking = Input.GetButton("Fire3");
-        if (ducking)
-        {
-            // _player.ChangeState(new ducking());
-
-        }
-        var charging = Input.GetButton("Fire1");
-        if (charging)
-        {
-           // _player.ChangeState(new charging());
-
-        }
-        
-        var use = Input.GetButton("Fire2");
-        if (use && _interacting == false && _useableActor != null)
-        {
-            _interacting = true;
-            _use = _useableActor.GetComponent<IUse>();
-            _use.Use();
-            _interacting = false;
-        }
+    private void FixedUpdate()
+    {
+        _state.HoldState();
     }
 
     private void OnTriggerEnter(Collider other)
     {
-        if (other.tag == "Useable")
-        {
-            _useableActor = other.gameObject;
-        }
-    }
+        Use.Trigger(true, other);
+        _state.Trigger(true, other);
+    } 
+    
+    private void OnTriggerExit(Collider other)
+    {
+        Use.Trigger(false, other);
+        _state.Trigger(true, other);
+
+    } 
+    
 } }
